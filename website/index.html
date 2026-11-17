@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Destination Finder</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;800&display=swap" rel="stylesheet">
+        <link rel="icon" type="image/jpeg" href="/website/resources/favicon.jpg">
+        <link rel="stylesheet" href="style.css">
+        <script src="script.js" defer></script>
+    </head>
+
+    <body>
+
+        <!-- Top bar with the settings icon (top-right) -->
+        <header class="topbar">
+            <span class="brand">Destination Finder</span>
+
+            <div class="settings">
+                <button id="settingsBtn" class="icon-btn" type="button" aria-label="Settings" aria-expanded="false" aria-controls="settingsMenu">
+                    <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3h0a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5h0a1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8v0a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"></path>
+                    </svg>
+                </button>
+
+                <!-- To add a settings option: copy one <li> and change data-open to a page id below. -->
+                <ul id="settingsMenu" hidden>
+                    <li><button type="button" data-open="creditsView">Credits</button></li>
+                    <li><button type="button" data-open="howView">Learn How it Works</button></li>
+                </ul>
+            </div>
+        </header>
+
+        <main>
+
+            <!-- ============ LOGIN (shown on every visit) ============ -->
+            <section class="view" id="loginView">
+                <div class="login">
+                    <div class="login-hero">
+                        <h2>Where should you go next?</h2>
+                        <p>Answer eight quick questions and get a destination that fits you.</p>
+                    </div>
+
+                    <form class="card" id="loginForm">
+                        <label for="password">Enter your password to begin.</label>
+                        <input
+                            id="password"
+                            name="password"
+                            type="password"
+                            autocomplete="current-password"
+                            placeholder="Password"
+                            required
+                            autofocus
+                        >
+                        <p class="error" id="loginError" role="alert"></p>
+                        <button class="btn" type="submit">Continue</button>
+                    </form>
+                </div>
+            </section>
+
+            <!-- ============ QUESTIONS ============ -->
+            <section class="view" id="quizView" hidden>
+
+                <h1> Welcome! </h1>
+                <p class="lead">Tell us what you like. We will find your destination.</p>
+
+                <div id="formFiller">
+
+                    <div class="progress" aria-hidden="true"><div id="progressBar"></div></div>
+                    <p class="step-count" id="stepCount"></p>
+
+                    <form id="destinationForm" method="POST" action="/recommend-destination" novalidate>
+
+                        <div class="step">
+                            <label for="budget">What is your budget? (In INR, minimum 15,000.)</label>
+
+                            <input
+                                id="budget"
+                                name="budget"
+                                type="number"
+                                placeholder="Enter your budget."
+                                min="15000"
+                                step="25"
+                                required
+                            >
+                        </div>
+
+                        <div class="step">
+                            <label for="preferredClimate">Which climates do you enjoy? Pick all that apply.</label>
+
+                            <select
+                                id="preferredClimate"
+                                name="preferredClimate"
+                                multiple
+                                required
+                            >
+                                <option value="0" data-img="/website/resources/climate-tropical.jpg">Tropical</option>
+                                <option value="1" data-img="/website/resources/climate-dry.jpg">Dry</option>
+                                <option value="2" data-img="/website/resources/climate-temperate.jpg">Temperate</option>
+                                <option value="3" data-img="/website/resources/climate-continental.jpg">Continental</option>
+                                <option value="4" data-img="/website/resources/climate-polar.jpg">Polar</option>
+                            </select>
+                        </div>
+
+                        <div class="step">
+                            <label for="preferredMonths">Which months can you travel? Pick all that apply.</label>
+
+                            <select
+                                id="preferredMonths"
+                                name="preferredMonths"
+                                multiple
+                                required
+                            >
+                                <option value="1">January</option>
+                                <option value="2">February</option>
+                                <option value="3">March</option>
+                                <option value="4">April</option>
+                                <option value="5">May</option>
+                                <option value="6">June</option>
+                                <option value="7">July</option>
+                                <option value="8">August</option>
+                                <option value="9">September</option>
+                                <option value="10">October</option>
+                                <option value="11">November</option>
+                                <option value="12">December</option>
+                            </select>
+                        </div>
+
+                        <div class="step">
+                            <label for="urbanRural">Do you prefer urban or rural areas?</label>
+
+                            <select
+                                id="urbanRural"
+                                name="urbanRural"
+                                required
+                            >
+                                <option value="0" data-img="/website/resources/place-urban.jpg">Urban</option>
+                                <option value="1" data-img="/website/resources/place-rural.jpg">Rural</option>
+                            </select>
+                        </div>
+
+                        <div class="step">
+                            <label for="excitingPlaces">Which landscapes excite you most? Pick all that apply.</label>
+
+                            <select
+                                id="excitingPlaces"
+                                name="excitingPlaces"
+                                multiple
+                                required
+                            >
+                                <option value="0" data-img="/website/resources/terrain-beaches.jpg">Beaches</option>
+                                <option value="1" data-img="/website/resources/terrain-forests.jpg">Forests</option>
+                                <option value="2" data-img="/website/resources/terrain-mountains.jpg">Mountains</option>
+                                <option value="3" data-img="/website/resources/terrain-plains.jpg">Plains</option>
+                            </select>
+                        </div>
+
+                        <div class="step">
+                            <label for="quietExciting">Do you prefer quiet or exciting places?</label>
+
+                            <select
+                                id="quietExciting"
+                                name="quietExciting"
+                                required
+                            >
+                                <option value="0">Quiet</option>
+                                <option value="1">Exciting</option>
+                            </select>
+                        </div>
+
+                        <div class="step">
+                            <label for="excitingActivities">Which activities excite you most? Pick all that apply.</label>
+
+                            <select
+                                id="excitingActivities"
+                                name="excitingActivities"
+                                multiple
+                                required
+                            >
+                                <option value="0" data-img="/website/resources/activity-surfing.jpg">Surfing</option>
+                                <option value="1" data-img="/website/resources/activity-hiking.jpg">Hiking</option>
+                                <option value="2" data-img="/website/resources/activity-camping.jpg">Camping</option>
+                                <option value="3" data-img="/website/resources/activity-roaming.jpg">Just roaming around</option>
+                                <option value="4" data-img="/website/resources/activity-swimming.jpg">Swimming</option>
+                            </select>
+                        </div>
+
+                        <div class="step">
+                            <label for="folkLegend">Do folk legends attract you?</label>
+
+                            <select
+                                id="folkLegend"
+                                name="folkLegend"
+                                required
+                            >
+                                <option value="1">Yes</option>
+                                <option value="0">No</option>
+                            </select>
+                        </div>
+
+                        <p class="error" id="formError" role="alert"></p>
+
+                        <div class="nav">
+                            <button class="btn ghost" type="button" id="backBtn">Back</button>
+                            <button class="btn" type="button" id="nextBtn">Next</button>
+                            <button class="btn" type="submit" id="submitBtn">Find your favorite destinations!</button>
+                        </div>
+
+                    </form>
+
+                </div>
+
+            </section>
+
+            <!-- ============ RESULT ============ -->
+            <section class="view" id="resultView" hidden>
+                <div class="card result">
+                    <p class="lead">Your top 5 destinations</p>
+                    <ol id="resultList"></ol>
+                    <button class="btn" type="button" id="restartBtn">
+                        Start over
+                    </button>
+                </div>
+            </section>
+
+            <!-- ============ CREDITS PAGE ============ -->
+
+            <section class="view page" id="creditsView" hidden>
+                <button class="btn ghost" type="button" data-back>Back</button>
+                <h2>Credits</h2>
+                <div class="page-body">
+                    <h3 id="creditsSentence">
+                        The project is created by <strong><b>Sohan Patri</b></strong> and <strong><b>Sujit Dash. </b></strong>
+                    </h3>
+                    
+                    <p id="additionalInfo">
+                        Developement started on: <time datetime="2026-10-5"> 5th October, 2026. </time>
+                    </p>
+
+                    <p id="licenseInfo">
+                        All rights reserved for this work. No one may use this without written permission from either author.
+                    </p>
+
+                    <h3 id="importantNote">
+                        <b>NOTE:</b> 
+                    </h3>
+
+                    <p>The project is going end-of-life on 22nd Novemeber. All guests having received a password must use it beforehand.</p>
+                    
+                </div>
+            </section>
+
+            <!-- ============ LEARN HOW IT WORKS PAGE ============ -->
+
+            <section class="view page" id="howView" hidden>
+                <button class="btn ghost" type="button" data-back>Back</button>
+                <h2>Learn How it Works</h2>
+                <div class="page-body">
+                    <div class="how-intro">
+                        <p class="how-eyebrow">BEHIND THE SCENES</p>
+                        <h3>How does it work?</h3>
+                        <p>
+                            Ever wondered how a few simple questions can turn into
+                            travel recommendations? Let's find out.
+                        </p>
+                    </div>
+                    
+                    <div class="how-card">
+                        <h3>01. The idea</h3>
+                        <p>
+                            Everyone has different preferences when travelling.
+                            Some people love mountains, others prefer beaches.
+                            Some enjoy peaceful places, while others seek adventure.
+                        </p>
+                        <p>
+                            This website uses your answers to find destinations
+                            that match your preferences and budget.
+                        </p>
+                    </div>
+                    
+                    <div class="how-card">
+                        <h3>02. Your answers</h3>
+                        <p>
+                            You answer eight questions about your travel preferences,
+                            including your budget, preferred climate, activities,
+                            terrain and more.
+                        </p>
+                        <p>
+                            These answers provide the information needed to make
+                            a recommendation.
+                        </p>
+                    </div>
+                    
+                    <div class="how-card">
+                        <h3>03. The journey of your answers</h3>
+                        <ol class="how-steps">
+                            <li>
+                                <strong>Frontend:</strong>
+                                The website collects your answers.
+                            </li>
+                            <li>
+                                <strong>Backend:</strong>
+                                FastAPI receives and validates them.
+                            </li>
+                            <li>
+                                <strong>Data processing:</strong>
+                                Your answers are converted into numerical values
+                                that the model can understand.
+                            </li>
+                            <li>
+                                <strong>Machine learning:</strong>
+                                A trained PyTorch model evaluates the destinations.
+                            </li>
+                            <li>
+                                <strong>Results:</strong>
+                                The best affordable matches are sent back to
+                                the website.
+                            </li>
+                        </ol>
+                    </div>
+                    
+                    <div class="how-card">
+                        <h3>04. A little more technical</h3>
+                        <p>
+                            The machine learning model is a neural network.
+                            It was trained using examples so that it could learn
+                            relationships between travel preferences and destinations.
+                        </p>
+                        <p>
+                            When you submit your answers, they are represented
+                            as a tensor containing 30 numerical features.
+                            The neural network processes this input and produces
+                            scores for the available destinations.
+                        </p>
+                    </div>
+                    
+                    <div class="how-card">
+                        <h3>05. Choosing your destinations</h3>
+                        <p>
+                            The model's scores help rank destinations according
+                            to how well they match your answers.
+                        </p>
+                        <p>
+                            The system also checks your budget. Destinations
+                            exceeding it are excluded, and up to five affordable
+                            recommendations are returned.
+                        </p>
+                    </div>
+                    
+                    <div class="how-ending">
+                        <h3>And that's how it works!</h3>
+                        <p>
+                            From eight simple answers to personalised travel
+                            recommendations, several components work together
+                            behind the scenes.
+                        </p>
+                    </div>
+                    
+                </div>
+            </section>
+
+        </main>
+
+    </body>
+
+</html>
