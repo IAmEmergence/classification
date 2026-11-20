@@ -57,6 +57,7 @@ def verify_api_key(
 limiter = Limiter(
     key_func=get_api_key,
     default_limits=[],
+    headers_enabled=True,
 )
 
 app = FastAPI()

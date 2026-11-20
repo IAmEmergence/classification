@@ -253,6 +253,14 @@ async function submitAnswers() {
             formError.textContent = 'Some answers look invalid. Please review them.';
             return;
         }
+        if (response.status === 429) {
+            const retryAfter = response.headers.get('Retry-After');
+        
+            formError.textContent = retryAfter
+                ? `Too many requests. Try again in ${retryAfter} seconds.`
+                : 'Too many requests. Please try again later.';
+            return;
+        }
         if (!response.ok) {
             formError.textContent = 'Something went wrong. Please try again.';
             return;
