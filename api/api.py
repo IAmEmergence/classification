@@ -10,6 +10,7 @@ from fastapi import (
     FastAPI, 
     Header, 
     HTTPException,
+    Response,
     Request,
 )
 from fastapi.staticfiles import StaticFiles
@@ -79,6 +80,7 @@ app.add_exception_handler(
 )
 async def recommend_destination(
     request: Request,
+    response: Response,
     user_answer: UserResponse,
     x_api_key: Annotated[str, Depends(verify_api_key)],
 ) -> dict[str, list[str]]:
