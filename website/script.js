@@ -2,6 +2,9 @@
 
 /* ===== SETTINGS YOU MAY EDIT ===== */
 const API_URL = '/recommend-destination';
+const DB_NAME = 'DestinationFinder';
+const DB_VERSION = 1;
+const STORE_NAME = 'queries';
 /* ================================= */
 
 /* The password lives only in this variable. It is gone when the page reloads. */
@@ -22,6 +25,7 @@ const loginError = $('#loginError');
 const menu = $('#settingsMenu');
 const menuBtn = $('#settingsBtn');
 const choiceSyncs = [];
+const downloadHistoryBtn = $('#downloadHistoryBtn');
 
 /* ---------- Views ---------- */
 
@@ -220,6 +224,101 @@ function buildPayload() {
     };
 }
 
+
+/* ---------- Local Query History ---------- */
+
+function openQueryDB() {
+    return new Promise((resolve, reject) => {
+        const request = indexedDB.open(DB_NAME, DB_VERSION);
+
+        request.onupgradeneeded = () => {
+            const db = request.result;
+
+            if (!db.objectStoreNames.contains(STORE_NAME)) {
+                db.createObjectStore(STORE_NAME, {
+                    keyPath: 'id',
+                    autoIncrement: true,
+                });
+            }
+        };
+
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+    });
+}
+
+async function saveQuery(payload, recommendations) {
+    const db = await openQueryDB();
+
+    try {
+        await new Promise((resolve, reject) => {
+            const transaction = db.transaction(STORE_NAME, 'readwrite');
+
+            transaction.objectStore(STORE_NAME).add({
+                timestamp: new Date().toISOString(),
+                answers: payload,
+                recommendations,
+            });
+
+            transaction.oncomplete = resolve;
+            transaction.onerror = () => reject(transaction.error);
+            transaction.onabort = () => reject(transaction.error);
+        });
+    } finally {
+        db.close();
+    }
+}
+
+async function downloadQueryHistory() {
+    let db;
+
+    try {
+        db = await openQueryDB();
+
+        const queries = await new Promise((resolve, reject) => {
+            const transaction = db.transaction(STORE_NAME, 'readonly');
+            const request = transaction.objectStore(STORE_NAME).getAll();
+
+            request.onsuccess = () => resolve(request.result);
+            request.onerror = () => reject(request.error);
+        });
+
+        if (queries.length === 0) {
+            alert('No query history is available yet.');
+            return;
+        }
+
+        const json = JSON.stringify({
+            application: 'Destination Finder',
+            exported_at: new Date().toISOString(),
+            total_queries: queries.length,
+            queries,
+        }, null, 2);
+
+        const blob = new Blob([json], {
+            type: 'application/json',
+        });
+
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+
+        link.href = url;
+        link.download = 'user_queries.json';
+
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+
+    } catch (error) {
+        console.error('Query history export failed:', error);
+        alert('Could not export query history. Please try again.');
+    } finally {
+        db?.close();
+    }
+}
+
 function setLoading(isLoading) {
     const button = $('#submitBtn');
     button.disabled = isLoading;
@@ -236,13 +335,14 @@ async function submitAnswers() {
     setLoading(true);
 
     try {
+        const payload = buildPayload()
         const response = await fetch(API_URL, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'x-api-key': password,
             },
-            body: JSON.stringify(buildPayload()),
+            body: JSON.stringify(payload)
         });
 
         if (response.status === 401) {
@@ -267,10 +367,25 @@ async function submitAnswers() {
         }
 
         const data = await response.json();
+        const recommendations = data['recommended-destination'];
+        
+        if (
+            !Array.isArray(recommendations) ||
+            !recommendations.every(item => typeof item === 'string')
+        ) {
+            throw new Error('Invalid recommendation response.');
+        }
+        
+        try {
+            await saveQuery(payload, recommendations);
+        } catch (error) {
+            console.error('Local query storage failed:', error);
+        }
+        
         const resultList = $('#resultList');
         resultList.replaceChildren();
         
-        data['recommended-destination'].forEach((destination) => {
+       recommendations.forEach((destination) => {
             const item = document.createElement('li');
             item.textContent = destination;
             resultList.append(item);
@@ -310,3 +425,26 @@ steps.forEach((step) => {
 clearChoices();
 showStep(0, false);
 showView('loginView');
+
+/* Service worker */
+
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', async () => {
+        try {
+            await navigator.serviceWorker.register(
+                '/service-worker.js'
+            );
+        } catch (error) {
+            console.error('Service worker registration failed:', error);
+        }
+    });
+}
+
+/* Download History */
+
+if (downloadHistoryBtn) {
+    downloadHistoryBtn.addEventListener(
+        'click',
+        downloadQueryHistory
+    );
+}
